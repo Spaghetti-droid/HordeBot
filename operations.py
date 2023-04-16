@@ -2,8 +2,10 @@ HIGHEST_PRIORITY = 1
 LOWEST_PRIORITY = 3
 
 class Number:
-    def __init__(self, value:float) -> None:
-        self.value = value
+    def __init__(self, value) -> None:
+        self.value = float(value)
+        self.leftOp = None
+        self.rightOp = None
 
 class Operation:
     priority = -1
@@ -42,29 +44,29 @@ class Operation:
 class Power(Operation):
     priority = 1
     
-    def getNewValue(self, left:float, right:float) -> float:
-        return left**right
+    def getNewValue(self) -> float:
+        return self.leftNumber.value**self.rightNumber.value
     
 class Multiply(Operation):
     priority=2
     
-    def getNewValue(self, left:float, right:float) -> float:
-        return left*right
+    def getNewValue(self) -> float:
+        return self.leftNumber.value*self.rightNumber.value
     
 class Divide(Operation):
     priority=2
     
-    def getNewValue(self, left:float, right:float) -> float:
-        return left/right
+    def getNewValue(self) -> float:
+        return self.leftNumber.value/self.rightNumber.value
     
 class Add(Operation):
     priority=3
     
-    def getNewValue(self, left:float, right:float) -> float:
-        return left+right
+    def getNewValue(self) -> float:
+        return self.leftNumber.value+self.rightNumber.value
         
 class Substract(Operation):
     priority=3
     
-    def getNewValue(self, left: float, right: float) -> float:
-        return left-right
+    def getNewValue(self) -> float:
+        return self.leftNumber.value-self.rightNumber.value

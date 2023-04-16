@@ -2,7 +2,7 @@
 
 import re
 import random
-import operations as op
+import operations as ops
 import utility
 
 DICE_REGEXP = r"(\d+)d(\d+)"    #TODO Add (NOT .) OR start condition
@@ -30,7 +30,7 @@ def rollDice(expr: str) -> str:
     Returns:
         str: the expression with dice rolls subbed out for their results
     """
-    return re.sub(DICE_REGEXP, lambda x: roll(x.group(1), x.group(2)), expr)
+    return re.sub(DICE_REGEXP, lambda x: roll(int(x.group(1)), int(x.group(2))), expr)
 
 def roll(numberOfDice: int, limit:int) -> str:
     """Performs a dice roll and returns all roll values seperated by + and between parentheses
@@ -54,41 +54,51 @@ def calculate(expr:str) -> float:
         float: The result of the calculation
     """
     
+    expr = expr.strip()
+    if not expr:
+        raise ValueError('Empty expression')
+    
     # First evaluate sub-expressions
     
     subExpressions = getSubexpressionIndices(expr)
+    # Revert to avoid changing indices for SE's that haven't been processed yet
+    subExpressions = sorted(subExpressions, key=lambda tup: tup[0], reverse=True)
     for subStart, subEnd in subExpressions:
-        expr[subStart:subEnd] = str(calculate(expr[subStart:subEnd]))
+        expr = expr[:subStart] + str(calculate(expr[subStart+1:subEnd-1])) + expr[subEnd:]
         
     # Split string into tokens and numbers. Convert the former to Operations and the latter to floats
     
     # Reverse the list so that we can go through the reversed list backwards.
     # We want to deal with operations from left to right in expr, but while avoiding changing the next indices 
-    splitExpr = re.split(SPLIT_REGEXP)
+    splitExpr = re.split(SPLIT_REGEXP, expr)
+    # Remove empty strings -_-
+    splitExpr = list(filter(None, splitExpr))
     priorityToOp = {}
     previousOp = None
+    previousNum = None
     for i in range(len(splitExpr)):
         t = toOperationOrFloat(splitExpr[i])
-        splitExpr[i] = t
         if i % 2:           # t is op - we are assuming here that there is a number - op - number - ... alternation
             previousOp = t
-            t.setLeftNumber(splitExpr[i-1])
+            t.setLeftNumber(previousNum)
             utility.addToDicList(priorityToOp, t.priority, t)
-        elif previousOp:    # t is a number and not the first one
-            previousOp.setRightNumber(t)
+        else:               # t is a number
+            previousNum = t
+            if previousOp:
+                previousOp.setRightNumber(t)
             
     
     # Execute the operations
     
-    currentNumber = None
-    for priority in range(op.HIGHEST_PRIORITY,op.LOWEST_PRIORITY):
-        opList = priorityToOp[priority]
-        for op in opList:            
-            currentNumber = op.apply()
+    for priority in range(ops.HIGHEST_PRIORITY,ops.LOWEST_PRIORITY+1):
+        if priority in priorityToOp:
+            opList = priorityToOp[priority]
+            for o in opList:            
+                previousNum = o.apply()
     
-    # currentNumber is the last item left and also the result
+    # remaining previousNum is the last item left and also the result
     
-    return currentNumber               
+    return previousNum.value               
     
 def getSubexpressionIndices(expr:str) -> list:
     """Finds the positions of any parts of the expression which are between brackets.
@@ -104,7 +114,7 @@ def getSubexpressionIndices(expr:str) -> list:
         list: containing the indices which enclose the parentheses of the subexpressions found
     """
     if '(' not in expr:
-        return None
+        return []
     openPs = 0
     subExpressions = []
     subStart = -1
@@ -138,19 +148,24 @@ def toOperationOrFloat(token:str) -> any:
     Returns:
         any: An op.Operation or a float
     """
+    token = token.strip()
     match token:
         #case 'd':
         #    return Roll()
         case '**':
-            return op.Power()
+            return ops.Power()
         case '*':
-            return op.Multiply()
+            return ops.Multiply()
         case '/':
-            return op.Divide()
+            return ops.Divide()
         case '+':
-            return op.Add()
+            return ops.Add()
         case '-':
-            return op.Substract()
+            return ops.Substract()
         case _:
-            return float(token)
+            try:
+                return ops.Number(token)
+            except Exception:
+                raise ValueError('Operation not recognised: ' + token)
+                
         

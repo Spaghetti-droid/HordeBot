@@ -3,6 +3,9 @@
 #   - set up logging
 #   - write tests?
 #   - test rolling code
+#   - format output to remove trailing 0s
+#   - comment ops
+#   - add gracefull handling of bad entries
 
 import discord
 from discord.ext import commands
@@ -25,15 +28,16 @@ async def on_ready():
 
 
 @bot.command(description="Roll dice and calculate")
-async def roll(ctx, dice: str):
+async def roll(ctx, expr: str):
     """Rolls a dice"""
     try:
-        exprAfterRoll, value = dr.rollAndCalculate(dice)
-    except Exception:
-        await ctx.send('Issue processing expression!')
+        exprAfterRoll, value = dr.rollAndCalculate(expr)
+    except Exception as e:
+        print(e)
+        await ctx.send(str(e))
         return
 
-    result = exprAfterRoll + ' = ' + str(value)
+    result = '`' + exprAfterRoll + ' = ' + str(value) + '`'
     await ctx.send(result)
 
 
