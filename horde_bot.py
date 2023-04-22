@@ -2,10 +2,6 @@
 # TODO:
 #   - set up logging
 #   - write tests?
-#   - test rolling code
-#   - format output to remove trailing 0s
-#   - comment ops
-#   - massive roll protection
 #   - edit descriptions for help command
 #   - implement days to or days since
 #   - implement poll
@@ -15,6 +11,8 @@ from discord.ext import commands
 import random
 import pathlib
 import commons.operations.dice_roll as dr
+
+MAX_OUTPUT_LENGTH = 2000
 
 description = '''This bot implements functionalities that may be interesting or useful for the horde'''
 
@@ -41,14 +39,24 @@ async def roll(ctx, expr: str):
     """
     try:
         exprAfterRoll, value = dr.rollAndCalculate(expr)
+        result = formatOutput(exprAfterRoll, value)
     except Exception as e:
         print(e)
         await ctx.send(str(e))
         return
-
-    result = f'`{exprAfterRoll} = {value:g}`'
+    
     await ctx.send(result)
 
+def formatOutput(label: str, value: str):
+    trimmedValue = f'{value:g}'
+    valLength = len(trimmedValue)
+    # -10 => formatting + extra space for ... if expression doesn't fit
+    maxLabelLength = MAX_OUTPUT_LENGTH - valLength -10
+    if maxLabelLength<0:
+        raise ValueError('The result is too big to show in Discord!')
+    truncatedLabel = label if len(label) <= maxLabelLength else label[:maxLabelLength] + '...'
+    return f'`{truncatedLabel} = {trimmedValue}`'
+    
 
 @bot.command(description="Can't choose? Let me do it!")
 async def choose(ctx, *choices: str):
