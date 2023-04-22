@@ -6,12 +6,14 @@
 #   - format output to remove trailing 0s
 #   - comment ops
 #   - add gracefull handling of bad entries
+#   - edit descriptions for help command
+#   - implement days to or days since
 
 import discord
 from discord.ext import commands
 import random
 import pathlib
-import dice_roll as dr
+import commons.dice_roller.dice_roll as dr
 
 description = '''This bot implements functionalities that may be interesting or useful for the horde'''
 
