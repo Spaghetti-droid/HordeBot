@@ -5,15 +5,16 @@
 #   - test rolling code
 #   - format output to remove trailing 0s
 #   - comment ops
-#   - add gracefull handling of bad entries
+#   - massive roll protection
 #   - edit descriptions for help command
 #   - implement days to or days since
+#   - implement poll
 
 import discord
 from discord.ext import commands
 import random
 import pathlib
-import commons.dice_roller.dice_roll as dr
+import commons.operations.dice_roll as dr
 
 description = '''This bot implements functionalities that may be interesting or useful for the horde'''
 
@@ -31,7 +32,13 @@ async def on_ready():
 
 @bot.command(description="Roll dice and calculate")
 async def roll(ctx, expr: str):
-    """Rolls a dice"""
+    """Evaluates the expression, rolling any dice provided in NdN format
+    Expression 
+
+    Args:
+        expr (str): A list of numbers and NdN expressions separated by +,-,*,/, or **. 
+                    For example: (5d6-2*3/8+4)**2
+    """
     try:
         exprAfterRoll, value = dr.rollAndCalculate(expr)
     except Exception as e:
@@ -39,13 +46,14 @@ async def roll(ctx, expr: str):
         await ctx.send(str(e))
         return
 
-    result = '`' + exprAfterRoll + ' = ' + str(value) + '`'
+    result = f'`{exprAfterRoll} = {value:g}`'
     await ctx.send(result)
 
 
 @bot.command(description="Can't choose? Let me do it!")
 async def choose(ctx, *choices: str):
-    """Chooses between multiple choices."""
+    """Chooses randomly between multiple choices. 
+    """
     await ctx.send(random.choice(choices))
 
 # Get token
