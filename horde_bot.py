@@ -47,15 +47,16 @@ async def roll(ctx, expr: str):
     
     await ctx.send(result)
 
-def formatOutput(label: str, value: str):
-    trimmedValue = f'{value:g}'
-    valLength = len(trimmedValue)
+def formatOutput(label: str, value):
+    value = str(value)
+    valLength = len(value)
     # -10 => formatting + extra space for ... if expression doesn't fit
     maxLabelLength = MAX_OUTPUT_LENGTH - valLength -10
     if maxLabelLength<0:
-        raise ValueError('The result is too big to show in Discord!')
+        print('The result is too big to show in Discord!')
+        return f'`... = {value[:maxLabelLength]}`'
     truncatedLabel = label if len(label) <= maxLabelLength else label[:maxLabelLength] + '...'
-    return f'`{truncatedLabel} = {trimmedValue}`'
+    return f'`{truncatedLabel} = {value}`'
     
 
 @bot.command(description="Can't choose? Let me do it!")
