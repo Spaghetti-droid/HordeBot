@@ -74,4 +74,4 @@ with open(tokenPath, 'r', encoding="utf-8") as tokenFile:
 
 # Run and connect    
 
-bot.run(token)
+bot.run(token, log_handler=None)
