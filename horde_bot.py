@@ -1,6 +1,5 @@
 # Based on discord.py's basic bot example: https://github.com/Rapptz/discord.py/blob/master/examples/basic_bot.py 
 # TODO:
-#   - set up logging
 #   - write tests?
 #   - edit descriptions for help command
 #   - implement days to or days since
@@ -10,8 +9,11 @@ import discord
 from discord.ext import commands
 import random
 import pathlib
+import logging
 import commons.operations.dice_roll as dr
 
+discord.utils.setup_logging()
+LOGGER = logging.getLogger(__name__)
 MAX_OUTPUT_LENGTH = 2000
 
 description = '''This bot implements functionalities that may be interesting or useful for the horde'''
@@ -24,8 +26,7 @@ bot = commands.Bot(command_prefix='?', description=description, intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
-    print('------')
+    LOGGER.info(f'Logged in as {bot.user} (ID: {bot.user.id})\n------')
 
 
 @bot.command(description="Roll dice and calculate")
@@ -41,7 +42,7 @@ async def roll(ctx, expr: str):
         exprAfterRoll, value = dr.rollAndCalculate(expr, MAX_OUTPUT_LENGTH)
         result = formatOutput(exprAfterRoll, value)
     except Exception as e:
-        print(e)
+        LOGGER.exception(e)
         await ctx.send(str(e))
         return
     
@@ -53,8 +54,8 @@ def formatOutput(label: str, value):
     # -10 => formatting + extra space for ... if expression doesn't fit
     maxLabelLength = MAX_OUTPUT_LENGTH - valLength -10
     if maxLabelLength<0:
-        print('The result is too big to show in Discord!')
-        return f'`... = {value[:maxLabelLength]}`'
+        LOGGER.warning('Result too big to show in Discord! This will be truncated: ', value)
+        return f'`... = {value[:maxLabelLength]}...`'
     truncatedLabel = label if len(label) <= maxLabelLength else label[:maxLabelLength] + '...'
     return f'`{truncatedLabel} = {value}`'
     
