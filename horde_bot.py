@@ -38,7 +38,7 @@ async def roll(ctx, expr: str):
                     For example: (5d6-2*3/8+4)**2
     """
     try:
-        exprAfterRoll, value = dr.rollAndCalculate(expr)
+        exprAfterRoll, value = dr.rollAndCalculate(expr, MAX_OUTPUT_LENGTH)
         result = formatOutput(exprAfterRoll, value)
     except Exception as e:
         print(e)
